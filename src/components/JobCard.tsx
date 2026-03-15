@@ -31,7 +31,7 @@ export function JobCard({ job, onApplied }: { job: JobSummary; onApplied?: () =>
       return;
     }
 
-    if (user.role !== "jobseeker") {
+    if (user.role?.toLowerCase() !== "jobseeker") {
       setMessage("Only jobseekers can apply for jobs.");
       return;
     }
@@ -74,7 +74,7 @@ export function JobCard({ job, onApplied }: { job: JobSummary; onApplied?: () =>
             )}
           </div>
         </div>
-        <div className="text-right flex-shrink-0">
+        <div className="text-right shrink-0">
           {job.salary && (
             <div className="bg-gray-100 rounded-lg px-3 py-2 border border-gray-300">
               <p className="text-lg font-bold text-gray-900">₹{parseFloat(job.salary).toLocaleString()}</p>
@@ -92,7 +92,7 @@ export function JobCard({ job, onApplied }: { job: JobSummary; onApplied?: () =>
         >
           View Details
         </Link>
-        {user && user.role === "jobseeker" && (
+        {user && user.role?.toLowerCase() === "jobseeker" && (
           <button
             onClick={handleApply}
             disabled={loading}

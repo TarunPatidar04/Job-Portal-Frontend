@@ -23,18 +23,20 @@ export function Header() {
           </Link>
           {user ? (
             <>
-              <Link
-                href="/applications"
-                className="text-gray-700 hover:text-gray-900 transition-colors"
-              >
-                My Applications
-              </Link>
-              {user?.role === "recruiter" && (
+              {user?.role?.toLowerCase() === "jobseeker" && (
+                <Link
+                  href="/applications"
+                  className="text-gray-700 hover:text-gray-900 transition-colors"
+                >
+                  My Applications
+                </Link>
+              )}
+              {user?.role?.toLowerCase() === "recruiter" && (
                 <Link
                   href="/recruiter/dashboard"
                   className="text-gray-700 hover:text-gray-900 transition-colors"
                 >
-                  Recruiter Dashboard
+                  Dashboard
                 </Link>
               )}
               <Link

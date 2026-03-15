@@ -19,8 +19,8 @@ export default function HomePage() {
     try {
       const response = await getJobs(filtersParam);
       setJobs(response.jobs || []);
-    } catch (err: any) {
-      setError(err?.message || "Failed to load jobs");
+    } catch (err: unknown) {
+      setError((err as Error)?.message || "Failed to load jobs");
       setJobs([]);
     } finally {
       setLoading(false);
@@ -34,7 +34,7 @@ export default function HomePage() {
   return (
     <div className="space-y-12">
       {/* Hero Section */}
-      <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl mx-4">
+      <div className="text-center py-16 bg-linear-to-br from-gray-50 to-gray-100 rounded-3xl mx-4">
         <h1 className="text-6xl font-bold text-gray-900 mb-6">
           Find Your Dream Job
         </h1>

@@ -2,126 +2,71 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getMyApplications } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
-interface Application {
-  application_id: number;
-  job_id: number;
-  applicant_id: number;
-  applicant_email: string;
-  status: string;
-  resume: string;
-  applied_at: string;
-  subscribed: boolean;
-  job_title: string;
-  job_salary: string;
-  job_location: string;
-}
-
-export default function ApplicationsPage() {
-  const { user } = useAuth();
+export default function JobSeekerApplicationsPage() {
   const router = useRouter();
-  const [applications, setApplications] = useState<Application[]>([]);
+  const { user } = useAuth();
+  
+  const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const isJobSeeker = user?.role?.toLowerCase() === "jobseeker";
 
   const loadApplications = async () => {
     setLoading(true);
     setError(null);
-
     try {
-      const response = await getMyApplications();
-      setApplications(response.applications || []);
+      // Yaha par aap api call laga sakte hain jobseeker ki applied jobs nikalne ke liye
+      // const res = await getMyApplications();
+      // setApplications(res.data || []);
     } catch (err: unknown) {
       setError((err as Error)?.message || "Failed to load applications");
-      setApplications([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
+    if (isJobSeeker) {
+      void loadApplications();
+    } else if (user && !isJobSeeker) {
+      router.replace("/");
     }
+  }, [isJobSeeker, user, router]);
 
-    if (user.role !== "jobseeker") {
-      router.replace("/recruiter/dashboard");
-      return;
-    }
-
-    void loadApplications();
-  }, [user]);
-
-  if (!user) {
-    return (
-      <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-700">
-        Please log in to view your applications.
-      </div>
-    );
-  }
+  if (!user || !isJobSeeker) return null;
 
   return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-slate-900">My Applications</h1>
-        <p className="mt-2 text-slate-600">
-          Track the jobs you&apos;ve applied for.
-        </p>
-      </div>
+    <div className="max-w-5xl mx-auto p-6 space-y-8">
+      <h1 className="text-3xl font-bold text-slate-900">My Applied Jobs</h1>
 
-      {loading ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-12 text-center text-slate-500">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900 mx-auto mb-4"></div>
-          Loading applications...
-        </div>
-      ) : error ? (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 p-8 text-center text-rose-700">
+      {error && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
           {error}
         </div>
+      )}
+
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-slate-900 mb-4"></div>
+          <p className="text-slate-600 font-medium text-lg">Loading applications...</p>
+        </div>
       ) : applications.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-12 text-center text-slate-600">
-          <p className="text-lg mb-2">No applications yet</p>
-          <p className="text-sm">You haven&apos;t applied for any jobs yet. Start browsing jobs to apply!</p>
+        <div className="rounded-2xl border border-slate-200 bg-gray-50 p-16 text-center shadow-sm">
+          <p className="text-slate-600 text-lg font-medium">You have not applied for any jobs yet.</p>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {applications.map((app) => (
-            <div
-              key={app.application_id}
-              className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-slate-900 mb-1">
-                    {app.job_title}
-                  </h3>
-                  <p className="text-sm text-slate-600">
-                    {app.job_location} • ₹{parseFloat(app.job_salary)?.toLocaleString()}
-                  </p>
-                </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                  app.status === 'Hired'
-                    ? 'bg-emerald-100 text-emerald-800'
-                    : app.status === 'Rejected'
-                    ? 'bg-rose-100 text-rose-800'
-                    : 'bg-yellow-100 text-yellow-800'
-                }`}>
-                  {app.status}
-                </span>
+        <div className="grid gap-6">
+          {applications.map((app, index) => {
+            return (
+              <div key={index} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                 <h3 className="font-bold text-xl text-slate-900">{app.job_title || `Application #${app.id}`}</h3>
+                 <p className="text-slate-500 mt-2">Status: {app.status}</p>
               </div>
-              <p className="text-sm text-slate-500">
-                Applied on {new Date(app.applied_at).toLocaleDateString()}
-              </p>
-              {app.subscribed && (
-                <p className="text-xs text-emerald-600 mt-2 font-medium">
-                  ⭐ Priority applicant
-                </p>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

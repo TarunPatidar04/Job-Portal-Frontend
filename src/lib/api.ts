@@ -283,7 +283,7 @@ export async function getJobApplications(jobId: string) {
 
 export async function updateApplicationStatus(
   applicationId: string,
-  status: "Submitted" | "Rejected" | "Hired",
+  status: string,
 ) {
   const res = await fetch(`/api/job/application/update/${applicationId}`, {
     method: "PUT",
