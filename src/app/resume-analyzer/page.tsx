@@ -4,11 +4,16 @@ import { useState, useRef } from "react";
 import { analyzeResume } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
+interface Suggestion {
+  title: string;
+  description: string;
+}
+
 interface ResumeAnalysis {
   atsScore: number;
   strengths: string[];
   weaknesses: string[];
-  suggestions: string[];
+  suggestions: string[] | Suggestion[];
   keywords: string[];
   overallFeedback: string;
 }
@@ -202,12 +207,16 @@ export default function ResumeAnalyzerPage() {
                 Strengths
               </h3>
               <ul className="space-y-3">
-                {analysis.strengths.map((strength, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <span className="text-green-600 font-bold mt-1">•</span>
-                    <span className="text-gray-700">{strength}</span>
-                  </li>
-                ))}
+                {analysis?.strengths && analysis.strengths.length > 0 ? (
+                  analysis.strengths.map((strength, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <span className="text-green-600 font-bold mt-1">•</span>
+                      <span className="text-gray-700">{strength}</span>
+                    </li>
+                  ))
+                ) : (
+                  <li className="text-gray-500">No strengths identified</li>
+                )}
               </ul>
             </div>
 
@@ -218,12 +227,16 @@ export default function ResumeAnalyzerPage() {
                 Areas for Improvement
               </h3>
               <ul className="space-y-3">
-                {analysis.weaknesses.map((weakness, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <span className="text-red-600 font-bold mt-1">•</span>
-                    <span className="text-gray-700">{weakness}</span>
-                  </li>
-                ))}
+                {analysis?.weaknesses && analysis.weaknesses.length > 0 ? (
+                  analysis.weaknesses.map((weakness, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <span className="text-red-600 font-bold mt-1">•</span>
+                      <span className="text-gray-700">{weakness}</span>
+                    </li>
+                  ))
+                ) : (
+                  <li className="text-gray-500">No areas for improvement identified</li>
+                )}
               </ul>
             </div>
           </div>
@@ -235,11 +248,20 @@ export default function ResumeAnalyzerPage() {
               Improvement Suggestions
             </h3>
             <div className="grid gap-4 md:grid-cols-2">
-              {analysis.suggestions.map((suggestion, index) => (
-                <div key={index} className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <p className="text-gray-800">{suggestion}</p>
-                </div>
-              ))}
+              {analysis?.suggestions && analysis.suggestions.length > 0 ? (
+                analysis.suggestions.map((suggestion, index) => (
+                  <div key={index} className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <h4 className="font-semibold text-blue-900 mb-2">
+                      {typeof suggestion === 'string' ? suggestion : suggestion.title}
+                    </h4>
+                    <p className="text-blue-800 text-sm">
+                      {typeof suggestion === 'string' ? suggestion : suggestion.description}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-2 text-gray-500 text-center py-8">No suggestions available</div>
+              )}
             </div>
           </div>
 
@@ -250,17 +272,21 @@ export default function ResumeAnalyzerPage() {
               Key Skills & Keywords Found
             </h3>
             <div className="flex flex-wrap gap-3">
-              {analysis.keywords.map((keyword, index) => (
-                <span
-                  key={index}
-                  className="px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium"
-                >
-                  {keyword}
-                </span>
-              ))}
+              {analysis?.keywords && analysis.keywords.length > 0 ? (
+                analysis.keywords.map((keyword, index) => (
+                  <span
+                    key={index}
+                    className="px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium"
+                  >
+                    {keyword}
+                  </span>
+                ))
+              ) : (
+                <div className="text-gray-500 text-center py-8">No keywords detected</div>
+              )}
             </div>
             <p className="mt-4 text-sm text-gray-600">
-              These keywords were detected in your resume. Make sure they align with the job descriptions you're targeting.
+              These keywords were detected in your resume. Make sure they align with the job descriptions youre targeting.
             </p>
           </div>
         </div>
