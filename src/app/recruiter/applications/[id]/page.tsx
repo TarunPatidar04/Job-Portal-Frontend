@@ -28,7 +28,6 @@ export default function RecruiterApplicationsPage() {
   const { id } = useParams();
   const { user } = useAuth();
   const [applications, setApplications] = useState<Application[]>([]);
-  console.log("applications", applications);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [jobTitle, setJobTitle] = useState<string>("");
@@ -161,24 +160,24 @@ export default function RecruiterApplicationsPage() {
                 <div className="flex flex-col gap-3 lg:min-w-[200px]">
                   <div className="text-center">
                     <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                      application.status === 'hired' ? 'bg-emerald-100 text-emerald-800' :
-                      application.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                      application.status === 'Hired' ? 'bg-emerald-100 text-emerald-800' :
+                      application.status === 'Rejected' ? 'bg-red-100 text-red-800' :
                       'bg-amber-100 text-amber-800'
                     }`}>
                       {application.status || 'pending'}
                     </span>
                   </div>
                   
-                  {application.status !== 'hired' && application.status !== 'rejected' && (
+                  {application.status !== 'Hired' && application.status !== 'Rejected' && (
                     <div className="flex gap-2">
                       <button
-                        onClick={() => handleUpdateStatus(application.application_id!, 'hired')}
+                        onClick={() => handleUpdateStatus(application.application_id!, 'Hired')}
                         className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
                       >
                         Hire
                       </button>
                       <button
-                        onClick={() => handleUpdateStatus(application.application_id!, 'rejected')}
+                        onClick={() => handleUpdateStatus(application.application_id!, 'Rejected')}
                         className="flex-1 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"
                       >
                         Reject
