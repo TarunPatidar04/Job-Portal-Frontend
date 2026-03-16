@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { applyForJob } from "@/lib/api";
-import { useState } from "react";
+import { applyForJob, getMyApplications } from "@/lib/api";
+import { useState, useEffect } from "react";
 
 export interface JobSummary {
   job_id: number;
@@ -24,6 +24,34 @@ export function JobCard({ job, onApplied }: { job: JobSummary; onApplied?: () =>
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [applicationStatus, setApplicationStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkApplicationStatus = async () => {
+      if (!user || user.role?.toLowerCase() !== "jobseeker") {
+        setApplicationStatus(null);
+        return;
+      }
+
+      try {
+        const res = await getMyApplications();
+        const applications = res.applications || res.data || [];
+        const application = applications.find((app: any) => 
+          app.job_id === job.job_id || app.jobId === job.job_id
+        );
+        
+        if (application) {
+          setApplicationStatus(application.status || 'Submitted');
+        } else {
+          setApplicationStatus(null);
+        }
+      } catch {
+        setApplicationStatus(null);
+      }
+    };
+
+    checkApplicationStatus();
+  }, [user, job.job_id]);
 
   const handleApply = async () => {
     if (!user) {
@@ -93,20 +121,32 @@ export function JobCard({ job, onApplied }: { job: JobSummary; onApplied?: () =>
           View Details
         </Link>
         {user && user.role?.toLowerCase() === "jobseeker" && (
-          <button
-            onClick={handleApply}
-            disabled={loading}
-            className="flex-1 rounded-lg bg-black px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-black transition-all shadow-sm hover:shadow-md"
-          >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                Applying...
-              </span>
-            ) : (
-              "Apply Now"
-            )}
-          </button>
+          applicationStatus ? (
+            <div className={`flex-1 rounded-lg px-4 py-2.5 text-center text-sm font-medium border ${
+              applicationStatus === 'Hired' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
+              applicationStatus === 'Rejected' ? 'bg-red-50 text-red-800 border-red-200' :
+              'bg-amber-50 text-amber-800 border-amber-200'
+            }`}>
+              {applicationStatus === 'Hired' ? '🎉 Hired!' :
+               applicationStatus === 'Rejected' ? '❌ Rejected' :
+               '✓ Applied'}
+            </div>
+          ) : (
+            <button
+              onClick={handleApply}
+              disabled={loading}
+              className="flex-1 rounded-lg bg-black px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-black transition-all shadow-sm hover:shadow-md"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Applying...
+                </span>
+              ) : (
+                "Apply Now"
+              )}
+            </button>
+          )
         )}
       </div>
 

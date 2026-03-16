@@ -103,11 +103,12 @@ export default function JobSeekerApplicationsPage() {
                   
                   <div className="flex flex-col items-end gap-3">
                     <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                      app.status === 'hired' ? 'bg-emerald-100 text-emerald-800' :
-                      app.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                      'bg-amber-100 text-amber-800'
+                      app.status === 'Hired' ? 'bg-emerald-100 text-emerald-800' :
+                      app.status === 'Rejected' ? 'bg-red-100 text-red-800' :
+                      app.status === 'Submitted' ? 'bg-amber-100 text-amber-800' :
+                      'bg-gray-100 text-gray-800'
                     }`}>
-                      {app.status || 'pending'}
+                      {app.status || 'Applied'}
                     </span>
                     <button
                       onClick={(e) => {

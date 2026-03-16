@@ -27,6 +27,7 @@ export default function JobDetailsPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [applying, setApplying] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+  const [applicationStatus, setApplicationStatus] = useState<string | null>(null);
 
   interface Application {
   id?: string | number;
@@ -57,13 +58,21 @@ useEffect(() => {
       try {
         const res = await getMyApplications();
         const applications: Application[] = res.applications || res.data || [];
-        const applied = applications.some((app: Application) => 
+        const application = applications.find((app: Application) => 
           app.job_id === Number(id) || app.jobId === Number(id)
         );
-        setHasApplied(applied);
+        
+        if (application) {
+          setHasApplied(true);
+          setApplicationStatus(application.status || 'Submitted');
+        } else {
+          setHasApplied(false);
+          setApplicationStatus(null);
+        }
       } catch {
         // If checking applications fails, assume not applied
         setHasApplied(false);
+        setApplicationStatus(null);
       }
     };
 
@@ -157,8 +166,20 @@ useEffect(() => {
             )}
             {user && user.role === "jobseeker" ? (
               hasApplied ? (
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-center">
-                  <p className="text-sm font-medium text-emerald-700">✓ Applied</p>
+                <div className={`rounded-lg border px-4 py-3 text-center ${
+                  applicationStatus === 'Hired' ? 'border-emerald-200 bg-emerald-50' :
+                  applicationStatus === 'Rejected' ? 'border-red-200 bg-red-50' :
+                  'border-amber-200 bg-amber-50'
+                }`}>
+                  <p className={`text-sm font-medium ${
+                    applicationStatus === 'Hired' ? 'text-emerald-700' :
+                    applicationStatus === 'Rejected' ? 'text-red-700' :
+                    'text-amber-700'
+                  }`}>
+                    {applicationStatus === 'Hired' ? '🎉 Hired!' :
+                     applicationStatus === 'Rejected' ? '❌ Application Rejected' :
+                     '✓ Application Submitted'}
+                  </p>
                 </div>
               ) : (
                 <button
