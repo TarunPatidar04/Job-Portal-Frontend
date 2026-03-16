@@ -3,12 +3,28 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { getMyApplications } from "@/lib/api";
+
+interface Application {
+  id?: string | number;
+  application_id?: string | number;
+  job_id?: string | number;
+  jobId?: string | number;
+  job_title?: string;
+  title?: string;
+  company_name?: string;
+  location?: string;
+  job_type?: string;
+  status?: string;
+  created_at?: string;
+  applied_at?: string;
+}
 
 export default function JobSeekerApplicationsPage() {
   const router = useRouter();
   const { user } = useAuth();
   
-  const [applications, setApplications] = useState<any[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,9 +34,8 @@ export default function JobSeekerApplicationsPage() {
     setLoading(true);
     setError(null);
     try {
-      // Yaha par aap api call laga sakte hain jobseeker ki applied jobs nikalne ke liye
-      // const res = await getMyApplications();
-      // setApplications(res.data || []);
+      const res = await getMyApplications();
+      setApplications(res.applications || res.data || []);
     } catch (err: unknown) {
       setError((err as Error)?.message || "Failed to load applications");
     } finally {
@@ -61,9 +76,50 @@ export default function JobSeekerApplicationsPage() {
         <div className="grid gap-6">
           {applications.map((app, index) => {
             return (
-              <div key={index} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                 <h3 className="font-bold text-xl text-slate-900">{app.job_title || `Application #${app.id}`}</h3>
-                 <p className="text-slate-500 mt-2">Status: {app.status}</p>
+              <div 
+                key={app.id || app.application_id || index} 
+                className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => router.push(`/jobs/${app.job_id || app.jobId}`)}
+              >
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="font-bold text-xl text-slate-900">{app.job_title || app.title || `Application #${app.id}`}</h3>
+                    <p className="text-slate-500 mt-1">{app.company_name || "Company"}</p>
+                    <div className="flex flex-wrap gap-4 mt-3 text-sm text-slate-600">
+                      <span className="flex items-center gap-1">
+                        📍 {app.location || "Location"}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        💼 {app.job_type || "Job Type"}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        📅 Applied: {app.created_at || app.applied_at ? 
+                          new Date(app.created_at || app.applied_at!).toLocaleDateString() : 
+                          'Not specified'
+                        }
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col items-end gap-3">
+                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                      app.status === 'hired' ? 'bg-emerald-100 text-emerald-800' :
+                      app.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                      'bg-amber-100 text-amber-800'
+                    }`}>
+                      {app.status || 'pending'}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/jobs/${app.job_id || app.jobId}`);
+                      }}
+                      className="rounded-lg border border-indigo-500 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100"
+                    >
+                      View Job
+                    </button>
+                  </div>
+                </div>
               </div>
             );
           })}

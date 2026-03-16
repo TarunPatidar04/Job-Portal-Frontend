@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { applyForJob, getJob } from "@/lib/api";
+import { applyForJob, getJob, getMyApplications } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
 interface Job {
@@ -26,9 +26,46 @@ export default function JobDetailsPage() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [applying, setApplying] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
 
-  useEffect(() => {
+  interface Application {
+  id?: string | number;
+  application_id?: string | number;
+  name?: string;
+  jobseeker_name?: string;
+  email?: string;
+  phone_number?: string;
+  bio?: string;
+  status?: string;
+  created_at?: string;
+  applied_at?: string;
+  job_id?: string | number;
+  jobId?: string | number;
+  job_title?: string;
+  title?: string;
+  company_name?: string;
+  location?: string;
+  job_type?: string;
+}
+
+useEffect(() => {
     if (!id) return;
+
+    const checkIfApplied = async () => {
+      if (!id || user?.role !== "jobseeker") return;
+      
+      try {
+        const res = await getMyApplications();
+        const applications: Application[] = res.applications || res.data || [];
+        const applied = applications.some((app: Application) => 
+          app.job_id === Number(id) || app.jobId === Number(id)
+        );
+        setHasApplied(applied);
+      } catch {
+        // If checking applications fails, assume not applied
+        setHasApplied(false);
+      }
+    };
 
     const load = async () => {
       setLoading(true);
@@ -36,6 +73,7 @@ export default function JobDetailsPage() {
       try {
         const response = await getJob(id as string);
         setJob(response.job);
+        await checkIfApplied();
       } catch (err: unknown) {
         setError((err as Error)?.message || "Failed to load job");
       } finally {
@@ -44,7 +82,7 @@ export default function JobDetailsPage() {
     };
 
     void load();
-  }, [id]);
+  }, [id, user]);
 
   const handleApply = async () => {
     setApplying(true);
@@ -53,6 +91,7 @@ export default function JobDetailsPage() {
     try {
       await applyForJob(id as string);
       setMessage("Application submitted successfully.");
+      setHasApplied(true); // Update applied status
     } catch (err: unknown) {
       setError((err as Error)?.message || "Failed to apply");
     } finally {
@@ -117,20 +156,26 @@ export default function JobDetailsPage() {
               </div>
             )}
             {user && user.role === "jobseeker" ? (
-              <button
-                onClick={handleApply}
-                disabled={applying}
-                className="rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
-              >
-                {applying ? (
-                  <span className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Applying...
-                  </span>
-                ) : (
-                  "Apply for this job"
-                )}
-              </button>
+              hasApplied ? (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-center">
+                  <p className="text-sm font-medium text-emerald-700">✓ Applied</p>
+                </div>
+              ) : (
+                <button
+                  onClick={handleApply}
+                  disabled={applying}
+                  className="rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
+                >
+                  {applying ? (
+                    <span className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Applying...
+                    </span>
+                  ) : (
+                    "Apply for this job"
+                  )}
+                </button>
+              )
             ) : (
               <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-center text-sm text-slate-600">
                 Login as a jobseeker to apply
