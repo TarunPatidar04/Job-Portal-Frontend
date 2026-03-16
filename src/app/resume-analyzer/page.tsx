@@ -98,6 +98,42 @@ export default function ResumeAnalyzerPage() {
 
   return (
     <div className="space-y-8">
+      {/* User Profile Section */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+        <div className="flex items-center gap-4">
+          {user.profile_pic ? (
+            <img
+              src={user.profile_pic}
+              alt={user.name}
+              className="w-16 h-16 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center">
+              <span className="text-gray-600 text-xl font-medium">
+                {user.name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          )}
+          <div className="flex-1">
+            <h2 className="text-xl font-bold text-gray-900">{user.name}</h2>
+            <p className="text-gray-600">{user.email}</p>
+            {user.bio && <p className="text-sm text-gray-500 mt-1">{user.bio}</p>}
+          </div>
+          {user.resume && (
+            <div className="text-right">
+              <p className="text-sm text-gray-500 mb-2">Current Resume</p>
+              <a
+                href={user.resume}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                📄 View Resume
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
       <div className="text-center">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">AI Resume Analyzer</h1>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">

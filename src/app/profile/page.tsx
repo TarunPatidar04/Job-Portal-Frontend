@@ -82,9 +82,55 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-8">
+      {/* Profile Picture Section */}
+      <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-lg">
+        <div className="flex items-center gap-6 mb-6">
+          {user.profile_pic ? (
+            <img
+              src={user.profile_pic}
+              alt={user.name}
+              className="w-24 h-24 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center">
+              <span className="text-gray-600 text-2xl font-medium">
+                {user.name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          )}
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">{user.name}</h1>
+            <p className="text-slate-600">{user.email}</p>
+            <p className="text-sm text-slate-500 capitalize">{user.role}</p>
+          </div>
+        </div>
+        
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-slate-900 mb-4">Update Profile Picture</h2>
+          <div className="flex items-center gap-4">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                setProfilePic(file ?? null);
+              }}
+              className="text-sm"
+            />
+            <button
+              disabled={loading || !profilePic}
+              onClick={handleUploadProfilePic}
+              className="rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
+            >
+              {loading ? "Uploading..." : "Upload Profile Picture"}
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-lg">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-900">Your Profile</h1>
+          <h2 className="text-2xl font-bold text-slate-900">Edit Profile Information</h2>
           <p className="mt-2 text-slate-600">
             Update your details or upload your resume.
           </p>
@@ -146,22 +192,6 @@ export default function ProfilePage() {
               </button>
             </>
           ) : null}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              setProfilePic(file ?? null);
-            }}
-            className="text-sm"
-          />
-          <button
-            disabled={loading || !profilePic}
-            onClick={handleUploadProfilePic}
-            className="rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
-          >
-            {loading ? "Uploading..." : "Upload Profile Picture"}
-          </button>
         </div>
 
         {message ? (
