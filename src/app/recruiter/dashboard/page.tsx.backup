@@ -10,38 +10,15 @@ import {
   getMyCompanies,
 } from "@/lib/api";
 
-interface Company {
-  company_id?: number;
-  id?: number;
-  name: string;
-  description: string;
-  website: string;
-  logo_url?: string;
-}
-
-interface Job {
-  job_id?: number;
-  id?: number;
-  title: string;
-  description: string;
-  salary?: string;
-  location: string;
-  job_type: string;
-  work_location: string;
-  role: string;
-  openings?: string;
-  application_count?: number;
-}
-
 export default function RecruiterDashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const [companies, setCompanies] = useState<Company[]>([]);
+  const [companies, setCompanies] = useState<any[]>([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null);
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [newCompany, setNewCompany] = useState({ name: "", description: "", website: "" });
   const [companyLogo, setCompanyLogo] = useState<File | null>(null);
 
@@ -71,24 +48,30 @@ export default function RecruiterDashboardPage() {
   };
 
   const loadCompanyDetails = async (companyId: number) => {
-    setSelectedCompanyId(companyId);
+    setLoading(true);
+    setError(null);
     try {
       const res = await getCompanyDetails(companyId.toString());
-      // Handle different response structures
-      const jobsData = res.companyData?.jobs || res.jobs || [];
-      setJobs(jobsData);
+      const jobsFromRes = Array.isArray(res.companyData?.jobs) ? res.companyData.jobs :
+                          Array.isArray(res.company?.jobs) ? res.company.jobs :
+                          Array.isArray(res.jobs) ? res.jobs :
+                          Array.isArray(res.data?.jobs) ? res.data.jobs :
+                          Array.isArray(res.data) ? res.data : [];
+      setJobs(jobsFromRes);
+      setSelectedCompanyId(companyId);
     } catch (err: unknown) {
-      setError((err as Error)?.message || "Failed to load company details");
+      setError((err as Error)?.message || "Failed to load jobs");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleCreateCompany = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCompany.name || !newCompany.description || !newCompany.website || !companyLogo) {
-      setError("Please fill all fields and upload a logo");
+  const handleCreateCompany = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!companyLogo) {
+      setError("Please select a company logo");
       return;
     }
-
     setLoading(true);
     setError(null);
     try {
@@ -98,12 +81,8 @@ export default function RecruiterDashboardPage() {
         website: newCompany.website,
         logoFile: companyLogo,
       });
-      
-      // Reset form
       setNewCompany({ name: "", description: "", website: "" });
       setCompanyLogo(null);
-      
-      // Reload companies
       await loadCompanies();
     } catch (err: unknown) {
       setError((err as Error)?.message || "Failed to create company");
@@ -112,35 +91,23 @@ export default function RecruiterDashboardPage() {
     }
   };
 
-  const handleCreateJob = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedCompanyId || !newJob.title || !newJob.description || !newJob.location || !newJob.role || !newJob.job_type || !newJob.work_location) {
-      setError("Please fill all required fields");
+  const handleCreateJob = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!selectedCompanyId) {
+      setError("Please select a company first");
       return;
     }
-
     setLoading(true);
     setError(null);
     try {
       await createJob({
-        title: newJob.title,
-        description: newJob.description,
-        salary: newJob.salary,
-        location: newJob.location,
-        role: newJob.role,
-        job_type: newJob.job_type,
-        work_location: newJob.work_location,
-        openings: newJob.openings,
+        ...newJob,
         company_id: selectedCompanyId.toString(),
       });
-      
-      // Reset form
       setNewJob({
         title: "", description: "", salary: "", location: "",
-        role: "", job_type: "", work_location: "", openings: ""
+        role: "", job_type: "", work_location: "", openings: "",
       });
-      
-      // Reload jobs
       await loadCompanyDetails(selectedCompanyId);
     } catch (err: unknown) {
       setError((err as Error)?.message || "Failed to create job");
@@ -155,106 +122,48 @@ export default function RecruiterDashboardPage() {
     } else if (user) {
       router.replace("/");
     }
-  }, [isRecruiter, user, router]);
+  }, [isRecruiter, user]);
+
+  if (!user || !isRecruiter) return null;
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-8">
-      {/* Header with Navigation */}
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Recruiter Dashboard</h1>
-          <p className="text-slate-600 mt-1">Manage your companies and job postings</p>
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={() => router.push("/recruiter/companies")}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            🏢 Companies
-          </button>
-          <button
-            onClick={() => router.push("/recruiter/jobs")}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            💼 Posted Jobs
-          </button>
-        </div>
+        <h1 className="text-3xl font-bold text-slate-900">Recruiter Dashboard</h1>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
-              <span className="text-emerald-600 text-xl">🏢</span>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-600">Total Companies</p>
-              <p className="text-2xl font-bold text-slate-900">{companies.length}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-              <span className="text-blue-600 text-xl">💼</span>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-600">Posted Jobs</p>
-              <p className="text-2xl font-bold text-slate-900">{jobs.length}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
-              <span className="text-amber-600 text-xl">📋</span>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-600">Total Applications</p>
-              <p className="text-2xl font-bold text-slate-900">
-                {jobs.reduce((total, job) => total + (job.application_count || 0), 0)}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Error Message */}
       {error && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
           {error}
         </div>
       )}
 
       <div className="grid gap-8 lg:grid-cols-2">
-        {/* Company Selection */}
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold text-slate-900 mb-6">Select Company</h2>
-          
-          {companies.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-slate-600 mb-4">No companies created yet.</p>
-              <button
-                onClick={() => router.push("/recruiter/companies")}
-                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
-              >
-                Create Company
-              </button>
+          <h2 className="text-xl font-bold text-slate-900 mb-6">Register Company</h2>
+          <form onSubmit={handleCreateCompany} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Company Name</label>
+              <input
+                required
+                type="text"
+                value={newCompany.name}
+                onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })}
+                className="w-full rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              />
             </div>
-          ) : (
-            <div className="space-y-3">
-              {companies.map((company) => (
-                <div
-                  key={company.company_id || company.id}
-                  onClick={() => loadCompanyDetails(company.company_id || company.id)}
-                  className={`rounded-lg border p-4 cursor-pointer transition-colors ${
-                    selectedCompanyId === (company.company_id || company.id)
-                      ? 'border-emerald-500 bg-emerald-50'
-                      : 'border-slate-200 bg-white hover:bg-slate-50'
-                  }`}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+              <textarea
+                required
+                value={newCompany.description}
+                onChange={(e) => setNewCompany({ ...newCompany, description: e.target.value })}
+                className="w-full rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                rows={3}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Website</label>
                 >
                   <div className="flex items-center gap-3">
                     {company.logo_url && (
@@ -418,7 +327,7 @@ export default function RecruiterDashboardPage() {
           </div>
           <div className="space-y-4">
             {jobs.slice(0, 3).map((job) => {
-              const currentJobId = job.job_id || job.id;
+              const currentJobId = job.job_id || job.id || job.jobId || job._id;
               return (
                 <div key={currentJobId} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-lg border border-slate-200 p-4">
                   <div>

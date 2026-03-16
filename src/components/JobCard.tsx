@@ -18,6 +18,7 @@ export interface JobSummary {
   company_name?: string;
   company_logo?: string;
   company_id?: number;
+  is_active?: boolean;
 }
 
 export function JobCard({ job, onApplied }: { job: JobSummary; onApplied?: () => void }) {
@@ -130,6 +131,10 @@ export function JobCard({ job, onApplied }: { job: JobSummary; onApplied?: () =>
               {applicationStatus === 'Hired' ? '🎉 Hired!' :
                applicationStatus === 'Rejected' ? '❌ Rejected' :
                '✓ Applied'}
+            </div>
+          ) : job.is_active === false ? (
+            <div className="flex-1 rounded-lg px-4 py-2.5 text-center text-sm font-medium border bg-red-50 text-red-800 border-red-200">
+              🚫 Position Filled
             </div>
           ) : (
             <button
