@@ -5,8 +5,10 @@ import { getJobs } from "@/lib/api";
 import { JobCard, JobSummary } from "@/components/JobCard";
 import { JobSearchForm } from "@/components/JobSearchForm";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
+  const router = useRouter();
   const { user } = useAuth();
   const [jobs, setJobs] = useState<JobSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,8 +30,12 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    void loadJobs(filters);
-  }, [filters]);
+    if (user?.role?.toLowerCase() === "recruiter") {
+      router.replace("/recruiter/dashboard");
+    } else {
+      void loadJobs(filters);
+    }
+  }, [filters, user, router]);
 
   return (
     <div className="space-y-12">
