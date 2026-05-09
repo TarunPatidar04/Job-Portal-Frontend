@@ -34,21 +34,37 @@ export function Header() {
           <span className="text-2xl font-bold text-gray-900">JobPortal</span>
         </Link>
         <nav className="flex items-center gap-6 text-sm font-medium">
-          <Link
-            href="/"
-            className="text-gray-700 hover:text-gray-900 transition-colors"
-          >
-            Jobs
-          </Link>
+          {(!user || user?.role?.toLowerCase() !== "recruiter") && (
+            <Link
+              href="/"
+              className="text-gray-700 hover:text-gray-900 transition-colors"
+            >
+              Jobs
+            </Link>
+          )}
           {user ? (
             <>
               {user?.role?.toLowerCase() === "jobseeker" && (
-                <Link
-                  href="/applications"
-                  className="text-gray-700 hover:text-gray-900 transition-colors"
-                >
-                  My Applications
-                </Link>
+                <>
+                  <Link
+                    href="/applications"
+                    className="text-gray-700 hover:text-gray-900 transition-colors"
+                  >
+                    My Applications
+                  </Link>
+                  <Link
+                    href="/career-advisor"
+                    className="text-gray-700 hover:text-gray-900 transition-colors"
+                  >
+                    Career Advisor
+                  </Link>
+                  <Link
+                    href="/resume-analyzer"
+                    className="text-gray-700 hover:text-gray-900 transition-colors"
+                  >
+                    Resume Analyzer
+                  </Link>
+                </>
               )}
               {user?.role?.toLowerCase() === "recruiter" && (
                 <Link
@@ -58,18 +74,6 @@ export function Header() {
                   Dashboard
                 </Link>
               )}
-              <Link
-                href="/career-advisor"
-                className="text-gray-700 hover:text-gray-900 transition-colors"
-              >
-                Career Advisor
-              </Link>
-              <Link
-                href="/resume-analyzer"
-                className="text-gray-700 hover:text-gray-900 transition-colors"
-              >
-                Resume Analyzer
-              </Link>
               
               {/* Profile Dropdown */}
               <div className="relative profile-dropdown">

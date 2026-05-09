@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { generateCareerPath } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 interface CareerData {
   summary: string;
@@ -26,6 +28,7 @@ interface CareerData {
 }
 
 export default function CareerAdvisorPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const [skills, setSkills] = useState("");
   const [loading, setLoading] = useState(false);
@@ -51,6 +54,12 @@ export default function CareerAdvisorPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (user?.role?.toLowerCase() === "recruiter") {
+      router.replace("/recruiter/dashboard");
+    }
+  }, [user, router]);
 
   if (!user) {
     return (

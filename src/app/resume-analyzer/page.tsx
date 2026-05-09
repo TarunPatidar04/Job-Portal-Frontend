@@ -3,6 +3,8 @@
 import { useState, useRef } from "react";
 import { analyzeResume } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 interface Suggestion {
   title: string;
@@ -19,6 +21,7 @@ interface ResumeAnalysis {
 }
 
 export default function ResumeAnalyzerPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -87,6 +90,12 @@ export default function ResumeAnalyzerPage() {
     if (score >= 60) return "bg-yellow-100";
     return "bg-red-100";
   };
+
+  useEffect(() => {
+    if (user?.role?.toLowerCase() === "recruiter") {
+      router.replace("/recruiter/dashboard");
+    }
+  }, [user, router]);
 
   if (!user) {
     return (
