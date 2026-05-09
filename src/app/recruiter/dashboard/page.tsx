@@ -61,7 +61,7 @@ export default function RecruiterDashboardPage() {
       // Automatically load jobs for the first company
       if (res.companies && res.companies.length > 0) {
         const firstCompanyId = res.companies[0].company_id || res.companies[0].id;
-        await loadCompanyDetails(firstCompanyId);
+        await loadCompanyDetails(firstCompanyId as number);
       }
     } catch (err: unknown) {
       setError((err as Error)?.message || "Failed to load companies");
@@ -249,7 +249,7 @@ export default function RecruiterDashboardPage() {
               {companies.map((company) => (
                 <div
                   key={company.company_id || company.id}
-                  onClick={() => loadCompanyDetails(company.company_id || company.id)}
+                  onClick={() => loadCompanyDetails((company.company_id || company.id) as number)}
                   className={`rounded-lg border p-4 cursor-pointer transition-colors ${
                     selectedCompanyId === (company.company_id || company.id)
                       ? 'border-emerald-500 bg-emerald-50'
